@@ -122,89 +122,100 @@ export default function HaraNiNotteruApp() {
     return { text: "低め＝腹囲に対して体重は軽め", tone: "text-orange-600" };
   };
 
-  const bodyType = (m) => {
-    if (!m) return "";
-
-    const bmiHigh = m.bmi >= 25;
-    const bmiNormalOrLow = m.bmi < 25;
-    const whtrHigh = m.whtr >= 0.5;
-    const whtrGood = m.whtr < 0.5;
-    const metabo = m.isMetaboWaist;
-    const bellyWarning = whtrHigh || metabo;
-    const bellyGood = whtrGood && !metabo;
-    const muscularLike = m.kgPerWaist >= 0.98 && m.wwi < 10.0;
-
-    if (bmiHigh && bellyGood && muscularLike) return "腹には乗ってない重量級";
-    if (bmiHigh && bellyGood) return "BMIだけ肥満型";
-    if (bmiHigh && bellyWarning) return "王道減量対象";
-    if (bmiNormalOrLow && bellyWarning) return "隠れ腹乗り型";
-    if (m.bmi < 18.5 && bellyWarning) return "痩せ型腹乗り注意";
-    if (m.kgPerWaist >= 1.0 && bellyGood) return "ガンゴリ型";
-    return "標準スリム型";
+  const bellyScore = (m) => {
+    if (!m) return 0;
+    let score = 0;
+    if (m.whtr < 0.5 && !m.isMetaboWaist) score += 1;
+    if (m.absi < 0.075) score += 1;
+    if (m.wwi < 9.5) score += 1;
+    return score;
   };
 
-  const conclusion = (m) => {
-    if (!m) return null;
-    const bmi = bmiLabel(m.bmi).text;
+  const bodyDiagnosis = (m) => {
+    if (!m) {
+      return {
+        type: "",
+        line1: "",
+        line2: "",
+        line3: "",
+        tone1: "text-slate-900",
+        tone2: "text-slate-900",
+        tone3: "text-slate-900",
+      };
+    }
+
+    const score = bellyScore(m);
     const whtr = whtrLabel(m.whtr).text;
-    const waist = waistLabel(m.waistCm).text;
-    const metaboPhrase = m.isMetaboWaist
-      ? `${genderLabel}のメタボ腹囲基準以上`
-      : `${genderLabel}のメタボ腹囲基準未満`;
+    const absi = absiLabel(m.absi).text.split("／")[0];
+    const wwi = wwiLabel(m.wwi).text.split("／")[0];
+    const bellyWarning = m.whtr >= 0.5 || m.isMetaboWaist || m.absi >= 0.08 || m.wwi >= 10.4;
 
-    if (m.bmi >= 25 && m.whtr < 0.5 && !m.isMetaboWaist && m.wwi < 10.0) {
-      return {
-        line1: `BMI と スペックだけ見ると「重い・${bmi}」。`,
-        line2: `でもWHtRは「${whtr}」、腹囲も「${waist}」。`,
-        line3: "＝ 体重はあるが、腹には乗っていない。",
-        tone1: "text-red-600",
-        tone2: "text-emerald-700",
-        tone3: "text-blue-800",
-      };
-    }
+    let type = "普通体型";
+    let comment = "体重と腹囲のバランスはおおむね標準域。まずはウエストの推移を見るとよいタイプ。";
+    let tone1 = "text-slate-900";
+    let tone3 = "text-blue-800";
 
-    if (m.bmi >= 25 && (m.whtr >= 0.5 || m.isMetaboWaist)) {
-      return {
-        line1: `BMIでは「${bmi}」。`,
-        line2: `WHtRは「${whtr}」、かつ${metaboPhrase}。`,
-        line3: "＝ 体重にも腹囲にも乗っている可能性。",
-        tone1: "text-red-600",
-        tone2: "text-red-600",
-        tone3: "text-red-700",
-      };
-    }
-
-    if (m.bmi < 25 && (m.whtr >= 0.5 || m.isMetaboWaist)) {
-      return {
-        line1: `BMIだけ見ると「${bmi}」。`,
-        line2: `でもWHtRは「${whtr}」、かつ${metaboPhrase}。`,
-        line3: "＝ BMIでは見逃す“隠れ腹乗り型”。",
-        tone1: "text-emerald-700",
-        tone2: "text-orange-600",
-        tone3: "text-orange-600",
-      };
-    }
-
-    if (m.bmi < 18.5 && (m.whtr >= 0.5 || m.isMetaboWaist)) {
-      return {
-        line1: "BMIだけ見ると低体重。",
-        line2: `でもWHtRは「${whtr}」、腹囲も「${waist}」。`,
-        line3: "＝ 痩せていても腹囲は別で見るべき。",
-        tone1: "text-sky-700",
-        tone2: "text-orange-600",
-        tone3: "text-orange-600",
-      };
+    if (bellyWarning && m.bmi >= 25) {
+      type = "腹乗り重量級";
+      comment = "BMIも腹囲系指標も高め。体重だけでなく、ウエストの変化を優先して見たいタイプ。";
+      tone1 = "text-red-600";
+      tone3 = "text-red-700";
+    } else if (bellyWarning && m.bmi < 25) {
+      type = "隠れ腹乗り型";
+      comment = "BMIだけでは普通に見えても、腹囲系指標では注意。体重よりウエストを優先して見たいタイプ。";
+      tone1 = "text-orange-600";
+      tone3 = "text-orange-600";
+    } else if (m.bmi < 18.5 && score >= 2) {
+      type = "シンデレラ体型";
+      comment = "かなり軽量寄り。腹囲は細いが、健康状態や筋量は別で確認したいタイプ。";
+      tone1 = "text-sky-700";
+      tone3 = "text-sky-700";
+    } else if (m.bmi < 21 && score >= 2) {
+      type = "スリム体型";
+      comment = "体重も腹囲も軽め。見た目は細く出やすいが、筋量の有無で印象が変わるタイプ。";
+      tone1 = "text-emerald-700";
+      tone3 = "text-emerald-700";
+    } else if (m.bmi < 25 && score >= 2 && m.kgPerWaist >= 0.92) {
+      type = "痩せマッチョ";
+      comment = "BMIは標準域で、腹囲系指標も良好。腹が薄く、除脂肪量が残っている可能性。";
+      tone1 = "text-blue-700";
+      tone3 = "text-blue-700";
+    } else if (m.bmi < 25) {
+      type = "普通体型";
+      comment = "BMIも腹囲系指標も大きな矛盾は少なめ。標準域の体型として見てよいタイプ。";
+      tone1 = "text-slate-900";
+      tone3 = "text-blue-800";
+    } else if (m.bmi >= 25 && score >= 3 && m.kgPerWaist >= 1.0) {
+      type = "ゴリマッチョ";
+      comment = "BMIだけでは重く見えるが、WHtR・ABSI・WWIはいずれも良好。体重は腹ではなく筋量・骨格に乗っている可能性。";
+      tone1 = "text-blue-700";
+      tone3 = "text-blue-800";
+    } else if (m.bmi >= 25 && score >= 2) {
+      type = "マッチョ";
+      comment = "BMIは高めだが、腹囲系指標は良好寄り。体重の一部は筋量・骨格に乗っている可能性。";
+      tone1 = "text-blue-700";
+      tone3 = "text-blue-800";
+    } else {
+      type = "腹乗り重量級";
+      comment = "BMIは高めで、腹囲系指標にも注意が残る。体重とウエストの両方を見たいタイプ。";
+      tone1 = "text-red-600";
+      tone3 = "text-red-700";
     }
 
     return {
-      line1: `BMIは「${bmi}」。`,
-      line2: `WHtRは「${whtr}」、腹囲も「${waist}」。`,
-      line3: "＝ 体重と腹囲のバランスはおおむね良好。",
-      tone1: "text-slate-900",
-      tone2: "text-emerald-700",
-      tone3: "text-blue-800",
+      type,
+      line1: `あなたは「${type}」`,
+      line2: `WHtR：${whtr} / ABSI：${absi} / WWI：${wwi}`,
+      line3: `寸評：${comment}`,
+      tone1,
+      tone2: score >= 2 ? "text-emerald-700" : bellyWarning ? "text-orange-600" : "text-slate-900",
+      tone3,
     };
   };
+
+  const bodyType = (m) => bodyDiagnosis(m).type;
+
+  const conclusion = (m) => bodyDiagnosis(m);
 
   const rows = metrics
     ? [
@@ -284,7 +295,7 @@ export default function HaraNiNotteruApp() {
     : [];
 
   const xText = metrics
-    ? `${genderLabel} / ${metrics.hCm.toFixed(0)}cm / ${metrics.wKg.toFixed(1)}kg / W${metrics.waistCm.toFixed(0)}cm\n\nBMI：${metrics.bmi.toFixed(1)}\nWHtR：${metrics.whtr.toFixed(3)}\nABSI：${metrics.absi.toFixed(4)}\nWWI：${metrics.wwi.toFixed(2)}\n体重÷ウエスト：${metrics.kgPerWaist.toFixed(3)}\n腹囲：${waistLabel(metrics.waistCm).text}\n\nタイプ：${bodyType(metrics)}\n\n診断はこちら：${APP_URL}\n作った人：${X_HANDLE}\n\n#BMIだけではわからない\n#腹に乗ってる`
+    ? `${genderLabel} / ${metrics.hCm.toFixed(0)}cm / ${metrics.wKg.toFixed(1)}kg / W${metrics.waistCm.toFixed(0)}cm\n\nBMI：${metrics.bmi.toFixed(1)}\nWHtR：${metrics.whtr.toFixed(3)}\nABSI：${metrics.absi.toFixed(4)}\nWWI：${metrics.wwi.toFixed(2)}\n体重÷ウエスト：${metrics.kgPerWaist.toFixed(3)}\n腹囲：${waistLabel(metrics.waistCm).text}\n\nタイプ：${bodyType(metrics)}\n${conclusion(metrics).line2}\n${conclusion(metrics).line3}\n\n診断はこちら：${APP_URL}\n作った人：${X_HANDLE}\n\n#BMIだけではわからない\n#腹に乗ってる`
     : "";
 
   const copyText = async () => {
@@ -395,7 +406,7 @@ export default function HaraNiNotteruApp() {
               padding: "24px 28px",
             }}
           >
-            <div style={{ color: "#b45309", fontWeight: 900, fontSize: "30px", marginBottom: "8px" }}>結論</div>
+            <div style={{ color: "#b45309", fontWeight: 900, fontSize: "30px", marginBottom: "8px" }}>診断結果</div>
             <div style={{ fontWeight: 900, fontSize: "25px", lineHeight: 1.55 }}>
               <div style={{ color: exportToneColor(c.tone1) }}>{c.line1}</div>
               <div style={{ color: exportToneColor(c.tone2) }}>{c.line2}</div>
@@ -671,7 +682,7 @@ export default function HaraNiNotteruApp() {
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 conclusion-inner">
                 <div className="flex items-center gap-3 text-amber-700 font-black text-3xl conclusion-title">
                   <Trophy className="w-10 h-10" />
-                  結論
+                  診断結果
                 </div>
                 <div className="text-lg sm:text-2xl font-black leading-relaxed conclusion-text">
                   <p className={conclusion(metrics).tone1}>{conclusion(metrics).line1}</p>
