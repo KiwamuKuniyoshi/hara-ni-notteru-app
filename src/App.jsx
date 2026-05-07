@@ -3,6 +3,10 @@ import { Calculator, Share2, Download, Trophy, Scale, Ruler, Activity, Dumbbell 
 import { motion } from "framer-motion";
 import html2canvas from "html2canvas";
 
+const APP_URL = "https://hara-ni-notteru-app.vercel.app";
+const X_HANDLE = "@from100_keto";
+const X_PROFILE_URL = "https://x.com/from100_keto";
+
 const Button = ({ children, className = "", variant, ...props }) => (
   <button
     className={`inline-flex items-center justify-center px-4 py-2 rounded-xl font-bold border transition ${
@@ -280,7 +284,7 @@ export default function HaraNiNotteruApp() {
     : [];
 
   const xText = metrics
-    ? `${genderLabel} / ${metrics.hCm.toFixed(0)}cm / ${metrics.wKg.toFixed(1)}kg / W${metrics.waistCm.toFixed(0)}cm\n\nBMI：${metrics.bmi.toFixed(1)}\nWHtR：${metrics.whtr.toFixed(3)}\nABSI：${metrics.absi.toFixed(4)}\nWWI：${metrics.wwi.toFixed(2)}\n体重÷ウエスト：${metrics.kgPerWaist.toFixed(3)}\n腹囲：${waistLabel(metrics.waistCm).text}\n\nタイプ：${bodyType(metrics)}\n\n#BMIだけではわからない\n#腹に乗ってる`
+    ? `${genderLabel} / ${metrics.hCm.toFixed(0)}cm / ${metrics.wKg.toFixed(1)}kg / W${metrics.waistCm.toFixed(0)}cm\n\nBMI：${metrics.bmi.toFixed(1)}\nWHtR：${metrics.whtr.toFixed(3)}\nABSI：${metrics.absi.toFixed(4)}\nWWI：${metrics.wwi.toFixed(2)}\n体重÷ウエスト：${metrics.kgPerWaist.toFixed(3)}\n腹囲：${waistLabel(metrics.waistCm).text}\n\nタイプ：${bodyType(metrics)}\n\n診断はこちら：${APP_URL}\n作った人：${X_HANDLE}\n\n#BMIだけではわからない\n#腹に乗ってる`
     : "";
 
   const copyText = async () => {
@@ -329,6 +333,7 @@ export default function HaraNiNotteruApp() {
   const ExportImage = () => {
     if (!metrics) return null;
     const c = conclusion(metrics);
+
     return (
       <div
         ref={exportRef}
@@ -337,112 +342,137 @@ export default function HaraNiNotteruApp() {
           left: "-10000px",
           top: 0,
           width: "1080px",
-          background: "#ffffff",
-          padding: "32px",
+          height: "1350px",
+          background: "#f8fafc",
+          padding: "34px",
           zIndex: -1,
+          fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+          color: "#020617",
         }}
       >
         <div
           style={{
+            width: "100%",
+            height: "100%",
             background: "#ffffff",
-            border: "1px solid #e2e8f0",
-            borderRadius: "32px",
+            border: "2px solid #e2e8f0",
+            borderRadius: "36px",
             overflow: "hidden",
-            color: "#020617",
-            fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+            boxShadow: "0 12px 28px rgba(15, 23, 42, 0.10)",
           }}
         >
-          <div
-            style={{
-              padding: "32px",
-              textAlign: "center",
-              borderBottom: "1px solid #e2e8f0",
-              background: "linear-gradient(to bottom, #ffffff, #f8fafc)",
-            }}
-          >
+          <div style={{ padding: "34px 44px 22px", textAlign: "center" }}>
             <div
               style={{
-                display: "inline-flex",
-                alignItems: "center",
+                display: "inline-block",
                 borderRadius: "9999px",
                 background: "#0f172a",
                 color: "#ffffff",
-                padding: "8px 16px",
-                fontSize: "14px",
-                fontWeight: 800,
+                padding: "10px 22px",
+                fontSize: "18px",
+                fontWeight: 900,
                 marginBottom: "16px",
               }}
             >
               腹に乗ってる？
             </div>
-            <div style={{ fontSize: "42px", fontWeight: 900, lineHeight: 1.15 }}>
+
+            <div style={{ fontSize: "42px", fontWeight: 900, lineHeight: 1.15, letterSpacing: "-0.03em" }}>
               BMI・スペックだけでは体型はわからない
             </div>
-            <div style={{ marginTop: "10px", fontSize: "28px", fontWeight: 900, color: "#172554" }}>
-              {genderLabel} / {metrics.hCm.toFixed(0)}cm / {metrics.wKg.toFixed(1)}kg / ウエスト{metrics.waistCm.toFixed(0)}cm の各指標比較
-            </div>
-            <div
-              style={{
-                marginTop: "16px",
-                display: "inline-block",
-                border: "1px solid #cbd5e1",
-                borderRadius: "12px",
-                background: "#ffffff",
-                padding: "8px 16px",
-                fontWeight: 800,
-                color: "#334155",
-                fontSize: "16px",
-              }}
-            >
-              前提：{genderLabel}｜身長 {metrics.hCm.toFixed(0)}cm｜体重 {metrics.wKg.toFixed(1)}kg｜ウエスト {metrics.waistCm.toFixed(0)}cm
-            </div>
-          </div>
 
-          <div style={{ padding: "0 24px" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
-              <thead>
-                <tr style={{ background: "#172554", color: "#ffffff" }}>
-                  <th style={{ padding: "14px 16px", textAlign: "left", fontSize: "18px" }}>指標</th>
-                  <th style={{ padding: "14px 16px", textAlign: "left", fontSize: "18px" }}>計算式</th>
-                  <th style={{ padding: "14px 16px", textAlign: "center", fontSize: "18px" }}>数値</th>
-                  <th style={{ padding: "14px 16px", textAlign: "left", fontSize: "18px" }}>判定</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row, index) => (
-                  <tr key={`export-${row.name}`} style={{ background: index % 2 === 0 ? "#ffffff" : "#f8fafc" }}>
-                    <td style={{ padding: "14px 16px", borderTop: "1px solid #e2e8f0", fontWeight: 900, fontSize: "22px" }}>{row.name}</td>
-                    <td style={{ padding: "14px 16px", borderTop: "1px solid #e2e8f0", fontWeight: 800, fontSize: "16px" }}>{row.formula}</td>
-                    <td style={{ padding: "14px 16px", borderTop: "1px solid #e2e8f0", textAlign: "center", fontWeight: 900, fontSize: "30px" }}>{row.value}</td>
-                    <td style={{ padding: "14px 16px", borderTop: "1px solid #e2e8f0", fontWeight: 900, fontSize: "16px", color: exportToneColor(row.tone) }}>{row.judge}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div style={{ marginTop: "12px", fontSize: "28px", fontWeight: 900, color: "#172554", lineHeight: 1.3 }}>
+              {genderLabel} / {metrics.hCm.toFixed(0)}cm / {metrics.wKg.toFixed(1)}kg / W{metrics.waistCm.toFixed(0)}cm
+            </div>
           </div>
 
           <div
             style={{
-              margin: "24px",
+              margin: "0 44px 24px",
               border: "4px solid #f59e0b",
-              borderRadius: "24px",
+              borderRadius: "28px",
               background: "#fffbeb",
-              padding: "24px",
+              padding: "24px 28px",
             }}
           >
-            <div style={{ color: "#b45309", fontWeight: 900, fontSize: "34px", marginBottom: "10px" }}>結論</div>
-            <div style={{ fontWeight: 900, fontSize: "28px", lineHeight: 1.7 }}>
+            <div style={{ color: "#b45309", fontWeight: 900, fontSize: "30px", marginBottom: "8px" }}>結論</div>
+            <div style={{ fontWeight: 900, fontSize: "25px", lineHeight: 1.55 }}>
               <div style={{ color: exportToneColor(c.tone1) }}>{c.line1}</div>
               <div style={{ color: exportToneColor(c.tone2) }}>{c.line2}</div>
               <div style={{ color: exportToneColor(c.tone3) }}>{c.line3}</div>
-              <div style={{ marginTop: "8px", color: "#0f172a" }}>
+              <div style={{ marginTop: "6px", color: "#0f172a" }}>
                 タイプ：<span style={{ textDecoration: "underline", textDecorationColor: "#f59e0b", textDecorationThickness: "4px" }}>{bodyType(metrics)}</span>
               </div>
             </div>
           </div>
 
-          <div style={{ padding: "0 24px 24px 24px", fontSize: "13px", lineHeight: 1.7, color: "#64748b" }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "14px",
+              padding: "0 44px",
+            }}
+          >
+            {rows.map((row) => (
+              <div
+                key={`export-card-${row.name}`}
+                style={{
+                  border: "2px solid #e2e8f0",
+                  borderRadius: "22px",
+                  background: "#ffffff",
+                  padding: "18px 20px",
+                  minHeight: "126px",
+                  boxShadow: "0 2px 8px rgba(15, 23, 42, 0.05)",
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px" }}>
+                  <div style={{ fontSize: "25px", fontWeight: 900, color: "#172554", lineHeight: 1.2 }}>{row.name}</div>
+                  <div style={{ fontSize: "34px", fontWeight: 900, lineHeight: 1, whiteSpace: "nowrap" }}>{row.value}</div>
+                </div>
+
+                <div
+                  style={{
+                    marginTop: "12px",
+                    color: exportToneColor(row.tone),
+                    fontWeight: 900,
+                    fontSize: "19px",
+                    lineHeight: 1.32,
+                  }}
+                >
+                  {row.judge}
+                </div>
+
+                <div
+                  style={{
+                    marginTop: "8px",
+                    color: "#475569",
+                    fontWeight: 800,
+                    fontSize: "17px",
+                    lineHeight: 1.25,
+                  }}
+                >
+                  式：{row.formula}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div
+            style={{
+              position: "absolute",
+              left: "72px",
+              right: "72px",
+              bottom: "50px",
+              color: "#64748b",
+              fontWeight: 700,
+              fontSize: "16px",
+              lineHeight: 1.5,
+            }}
+          >
             ※ 腹囲は日本のメタボリックシンドローム腹囲基準（男性85cm以上・女性90cm以上）を参考にした簡易チェックです。正式なメタボ診断には血圧・血糖・脂質などの確認が必要です。ABSI・WWIの判定は簡易目安です。
+            <br />
+            作った人：{X_HANDLE}｜診断はこちら：{APP_URL}
           </div>
         </div>
       </div>
@@ -493,6 +523,16 @@ export default function HaraNiNotteruApp() {
           <div className="inline-flex items-center gap-2 rounded-full bg-slate-900 text-white px-4 py-2 text-sm font-bold shadow-sm">
             <Calculator className="w-4 h-4" />
             腹に乗ってる？
+          </div>
+          <div>
+            <a
+              href={X_PROFILE_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-black text-slate-700 shadow-sm"
+            >
+              作った人：{X_HANDLE}
+            </a>
           </div>
           <h1 className="text-3xl sm:text-5xl font-black tracking-tight top-title">スペックとBMIはクソ</h1>
           <p className="text-lg sm:text-2xl font-bold text-slate-700 top-subtitle">ウエスト加味する体型診断</p>
@@ -646,6 +686,11 @@ export default function HaraNiNotteruApp() {
 
             <p className="px-4 pb-6 text-xs sm:text-sm text-slate-500 footer-note">
               ※ 腹囲は日本のメタボリックシンドローム腹囲基準（男性85cm以上・女性90cm以上）を参考にした簡易チェックです。正式なメタボ診断には血圧・血糖・脂質などの確認が必要です。ABSI・WWIの判定は簡易目安です。
+              <br />
+              作った人：
+              <a href={X_PROFILE_URL} target="_blank" rel="noreferrer" className="font-black text-blue-700">
+                {X_HANDLE}
+              </a>
             </p>
           </section>
         )}
@@ -659,7 +704,7 @@ export default function HaraNiNotteruApp() {
               </Button>
               <Button variant="outline" className="rounded-2xl text-base font-bold h-12" onClick={downloadImage}>
                 <Download className="w-5 h-5 mr-2" />
-                画像保存
+                X用画像を保存
               </Button>
             </div>
             <textarea
