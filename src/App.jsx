@@ -327,8 +327,17 @@ export default function HaraNiNotteruApp() {
       });
 
       const link = document.createElement("a");
-      const genderText = gender === "male" ? "male" : "female";
-      link.download = `hara-ni-notteru_${genderText}_${metrics.hCm.toFixed(0)}cm_${metrics.wKg.toFixed(1)}kg_W${metrics.waistCm.toFixed(0)}cm.png`;
+    const now = new Date();
+const timestamp = [
+  now.getFullYear(),
+  String(now.getMonth() + 1).padStart(2, "0"),
+  String(now.getDate()).padStart(2, "0"),
+  String(now.getHours()).padStart(2, "0"),
+  String(now.getMinutes()).padStart(2, "0"),
+  String(now.getSeconds()).padStart(2, "0"),
+].join("");
+
+link.download = `hara-ni-notteru_${timestamp}.png`;
       link.href = canvas.toDataURL("image/png");
       link.click();
     } catch (e) {
