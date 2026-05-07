@@ -190,10 +190,15 @@ export default function HaraNiNotteruApp() {
       comment = "BMIだけでは重く見えるが、WHtR・ABSI・WWIはいずれも良好。体重は腹ではなく筋量・骨格に乗っている可能性。";
       tone1 = "text-blue-700";
       tone3 = "text-blue-800";
-    } else if (m.bmi >= 25 && score >= 2) {
+    } else if (m.bmi >= 25 && score >= 2 && m.kgPerWaist >= 0.96) {
       type = "マッチョ";
-      comment = "BMIは高めだが、腹囲系指標は良好寄り。体重の一部は筋量・骨格に乗っている可能性。";
+      comment = "BMIは高めだが、腹囲系指標は良好寄り。腹囲に対して体重もあり、筋量・骨格に乗っている可能性。";
       tone1 = "text-blue-700";
+      tone3 = "text-blue-800";
+    } else if (m.bmi >= 25 && score >= 2) {
+      type = "普通体型";
+      comment = "BMIはやや高めだが、腹囲系指標は良好寄り。マッチョ判定には体重密度が少し足りないタイプ。";
+      tone1 = "text-slate-900";
       tone3 = "text-blue-800";
     } else {
       type = "腹乗り重量級";
