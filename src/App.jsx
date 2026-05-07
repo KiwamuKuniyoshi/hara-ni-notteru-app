@@ -149,63 +149,85 @@ export default function HaraNiNotteruApp() {
     const absi = absiLabel(m.absi).text.split("／")[0];
     const wwi = wwiLabel(m.wwi).text.split("／")[0];
     const bellyWarning = m.whtr >= 0.5 || m.isMetaboWaist || m.absi >= 0.08 || m.wwi >= 10.4;
+    const isFemale = gender === "female";
 
-    let type = "普通体型";
+    let baseType = "普通体型";
     let comment = "体重と腹囲のバランスはおおむね標準域。まずはウエストの推移を見るとよいタイプ。";
     let tone1 = "text-slate-900";
     let tone3 = "text-blue-800";
 
     if (bellyWarning && m.bmi >= 25) {
-      type = "腹乗り重量級";
+      baseType = "腹乗り重量級";
       comment = "BMIも腹囲系指標も高め。体重だけでなく、ウエストの変化を優先して見たいタイプ。";
       tone1 = "text-red-600";
       tone3 = "text-red-700";
     } else if (bellyWarning && m.bmi < 25) {
-      type = "隠れ腹乗り型";
+      baseType = "隠れ腹乗り型";
       comment = "BMIだけでは普通に見えても、腹囲系指標では注意。体重よりウエストを優先して見たいタイプ。";
       tone1 = "text-orange-600";
       tone3 = "text-orange-600";
     } else if (m.bmi < 18.5 && score >= 2) {
-      type = "シンデレラ体型";
+      baseType = "シンデレラ体型";
       comment = "かなり軽量寄り。腹囲は細いが、健康状態や筋量は別で確認したいタイプ。";
       tone1 = "text-sky-700";
       tone3 = "text-sky-700";
     } else if (m.bmi < 21 && score >= 2) {
-      type = "スリム体型";
+      baseType = "スリム体型";
       comment = "体重も腹囲も軽め。見た目は細く出やすいが、筋量の有無で印象が変わるタイプ。";
       tone1 = "text-emerald-700";
       tone3 = "text-emerald-700";
     } else if (m.bmi < 25 && score >= 2 && m.kgPerWaist >= 0.92) {
-      type = "痩せマッチョ";
-      comment = "BMIは標準域で、腹囲系指標も良好。腹が薄く、除脂肪量が残っている可能性。";
+      baseType = "痩せマッチョ";
+      comment = isFemale
+        ? "BMIは標準域で、腹囲系指標も良好。腹が薄く、メリハリや除脂肪量が残っている可能性。"
+        : "BMIは標準域で、腹囲系指標も良好。腹が薄く、除脂肪量が残っている可能性。";
       tone1 = "text-blue-700";
       tone3 = "text-blue-700";
     } else if (m.bmi < 25) {
-      type = "普通体型";
+      baseType = "普通体型";
       comment = "BMIも腹囲系指標も大きな矛盾は少なめ。標準域の体型として見てよいタイプ。";
       tone1 = "text-slate-900";
       tone3 = "text-blue-800";
     } else if (m.bmi >= 25 && score >= 3 && m.kgPerWaist >= 1.0) {
-      type = "ゴリマッチョ";
-      comment = "BMIだけでは重く見えるが、WHtR・ABSI・WWIはいずれも良好。体重は腹ではなく筋量・骨格に乗っている可能性。";
+      baseType = "ゴリマッチョ";
+      comment = isFemale
+        ? "BMIだけでは重く見えるが、WHtR・ABSI・WWIはいずれも良好。体重は腹ではなく、骨格・下半身・メリハリに乗っている可能性。"
+        : "BMIだけでは重く見えるが、WHtR・ABSI・WWIはいずれも良好。体重は腹ではなく筋量・骨格に乗っている可能性。";
       tone1 = "text-blue-700";
       tone3 = "text-blue-800";
     } else if (m.bmi >= 25 && score >= 2 && m.kgPerWaist >= 0.96) {
-      type = "マッチョ";
-      comment = "BMIは高めだが、腹囲系指標は良好寄り。腹囲に対して体重もあり、筋量・骨格に乗っている可能性。";
+      baseType = "マッチョ";
+      comment = isFemale
+        ? "BMIは高めだが、腹囲系指標は良好寄り。腹囲に対して体重もあり、骨格・下半身・メリハリに乗っている可能性。"
+        : "BMIは高めだが、腹囲系指標は良好寄り。腹囲に対して体重もあり、筋量・骨格に乗っている可能性。";
       tone1 = "text-blue-700";
       tone3 = "text-blue-800";
     } else if (m.bmi >= 25 && score >= 2) {
-      type = "普通体型";
-      comment = "BMIはやや高めだが、腹囲系指標は良好寄り。マッチョ判定には体重密度が少し足りないタイプ。";
+      baseType = "普通体型";
+      comment = isFemale
+        ? "BMIはやや高めだが、腹囲系指標は良好寄り。メリハリ判定には体重密度が少し足りないタイプ。"
+        : "BMIはやや高めだが、腹囲系指標は良好寄り。マッチョ判定には体重密度が少し足りないタイプ。";
       tone1 = "text-slate-900";
       tone3 = "text-blue-800";
     } else {
-      type = "腹乗り重量級";
+      baseType = "腹乗り重量級";
       comment = "BMIは高めで、腹囲系指標にも注意が残る。体重とウエストの両方を見たいタイプ。";
       tone1 = "text-red-600";
       tone3 = "text-red-700";
     }
+
+    const femaleTypeMap = {
+      "シンデレラ体型": "シンデレラ体型",
+      "スリム体型": "スリム体型",
+      "普通体型": "普通体型",
+      "痩せマッチョ": "スリムメリハリ体型",
+      "マッチョ": "メリハリ体型",
+      "ゴリマッチョ": "グラマー体型",
+      "隠れ腹乗り型": "隠れ腹乗り型",
+      "腹乗り重量級": "腹乗り重量級",
+    };
+
+    const type = isFemale ? femaleTypeMap[baseType] || baseType : baseType;
 
     return {
       type,
